@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ user, totalPages, currentPage: page });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -84,6 +85,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ message: "Update successful" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -114,6 +116,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ message: "Todo deleted successfully" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
       totalPages,
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
