@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
 
-export async function PUT(
-  req: NextRequest, context: { params: { id: string } }
-) {
-    const { params } = context;
-    const { userId } = auth();
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
+  const { userId } = await auth(); // FIX: added await
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,10 +12,9 @@ export async function PUT(
 
   try {
     const { completed } = await req.json();
-    const todoId = params.id;
 
     const todo = await prisma.todo.findUnique({
-      where: { id: todoId },
+      where: { id },
     });
 
     if (!todo) {
@@ -29,36 +26,27 @@ export async function PUT(
     }
 
     const updatedTodo = await prisma.todo.update({
-      where: { id: todoId },
+      where: { id },
       data: { completed },
     });
 
     return NextResponse.json(updatedTodo);
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { userId } = auth();
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
+  const { userId } = await auth(); // FIX: added await
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const todoId = params.id;
-
-    const todo = await prisma.todo.findUnique({
-      where: { id: todoId },
-    });
+    const todo = await prisma.todo.findUnique({ where: { id } });
 
     if (!todo) {
       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
@@ -68,16 +56,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await prisma.todo.delete({
-      where: { id: todoId },
-    });
+    await prisma.todo.delete({ where: { id } });
 
     return NextResponse.json({ message: "Todo deleted successfully" });
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

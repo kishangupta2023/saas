@@ -1,42 +1,56 @@
+// middleware.ts
 import { clerkMiddleware, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const publicRoutes = ["/", "/api/webhook/register", "/sign-in", "/sign-up"];
+const publicRoutes: string[] = ["/", "/api/webhook/register", "/sign-in", "/sign-up"];
 
 export default clerkMiddleware(async (auth, req) => {
-  // Handle unauthenticated users trying to access protected routes
-  if (!auth().userId && !publicRoutes.includes(req.nextUrl.pathname)) {
+  const pathname = req.nextUrl.pathname;
+
+  // If the route is public, do nothing
+  if (publicRoutes.includes(pathname)) return;
+
+  // Get auth helper and userId
+  const authHelper = await auth();
+  const userId = authHelper?.userId;
+
+  // Not authenticated -> redirect to sign-in
+  if (!userId) {
+    if (typeof authHelper?.redirectToSignIn === "function") {
+      return authHelper.redirectToSignIn();
+    }
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  if (auth().userId) {
-    try {
-      const user = await clerkClient.users.getUser(auth().userId);
-      const role = user.publicMetadata.role as string | undefined;
+  // Authenticated -> fetch user via clerkClient instance
+  try {
+    // IMPORTANT: clerkClient must be awaited in Next.js so you get the actual client instance
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const role = user?.publicMetadata?.role as string | undefined;
 
-      // Admin role redirection logic
-      if (role === "admin" && req.nextUrl.pathname === "/dashboard") {
-        return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-      }
-
-      // Prevent non-admin users from accessing admin routes
-      if (role !== "admin" && req.nextUrl.pathname.startsWith("/admin")) {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      }
-
-      // Redirect authenticated users trying to access public routes
-      if (publicRoutes.includes(req.nextUrl.pathname)) {
-        return NextResponse.redirect(
-          new URL(role === "admin" ? "/admin/dashboard" : "/dashboard", req.url)
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching user data from Clerk:", error);
-      return NextResponse.redirect(new URL("/error", req.url));
+    // Admin landing redirect when hitting /dashboard
+    if (role === "admin" && pathname === "/dashboard") {
+      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
     }
+
+    // Prevent non-admins from accessing /admin/*
+    if (role !== "admin" && pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // If an authenticated user hits a public route, redirect to their landing
+    if (publicRoutes.includes(pathname)) {
+      return NextResponse.redirect(
+        new URL(role === "admin" ? "/admin/dashboard" : "/dashboard", req.url)
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching user data from Clerk:", error);
+    return NextResponse.redirect(new URL("/error", req.url));
   }
 });
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.*\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
