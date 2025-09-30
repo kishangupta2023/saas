@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 const ITEMS_PER_PAGE = 10;
 
 export async function GET(req: NextRequest) {
-  const { userId } =await auth();
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } =await auth();
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

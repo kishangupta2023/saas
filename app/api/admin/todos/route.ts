@@ -10,7 +10,7 @@ async function isAdmin(userId: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const { userId } =await auth();
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const { userId } =await auth();
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -104,7 +104,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const { userId } =await auth();
+  const { userId } = auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
