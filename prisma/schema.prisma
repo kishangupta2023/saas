@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -15,11 +8,11 @@ datasource db {
 }
 
 model User {
-  id               String    @id
-  email            String    @unique
-  isSubscribed     Boolean   @default(false)
-  subscriptionEnds DateTime?
-  todos            Todo[]
+  id                String    @id
+  email             String    @unique
+  isSubscribed      Boolean   @default(false)
+  subscriptionEnds  DateTime?
+  todos             Todo[]
 }
 
 model Todo {
@@ -29,5 +22,5 @@ model Todo {
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 }

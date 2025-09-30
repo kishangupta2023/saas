@@ -1,32 +1,18 @@
-// middleware.ts
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { clerkClient } from "@clerk/nextjs/server";
+import { clerkMiddleware, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/api/webhook/register",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-]);
-
-// Optional: define a type for your metadata
-type PublicMetadata = {
-  role?: "admin" | "user";
-};
+const publicRoutes = ["/", "/api/webhook/register", "/sign-in", "/sign-up"];
 
 export default clerkMiddleware(async (auth, req) => {
-  const userId = auth().userId;
-
-  // If not logged in and not visiting a public route → redirect to sign-in
-  if (!userId && !isPublicRoute(req)) {
+  // Handle unauthenticated users trying to access protected routes
+  if (!auth().userId && !publicRoutes.includes(req.nextUrl.pathname)) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  if (userId) {
+  if (auth().userId) {
     try {
-      const user = await clerkClient.users.getUser(userId);
-      const { role } = user.publicMetadata as PublicMetadata;
+      const user = await clerkClient.users.getUser(auth().userId);
+      const role = user.publicMetadata.role as string | undefined;
 
       // Admin role redirection logic
       if (role === "admin" && req.nextUrl.pathname === "/dashboard") {
@@ -39,7 +25,7 @@ export default clerkMiddleware(async (auth, req) => {
       }
 
       // Redirect authenticated users trying to access public routes
-      if (isPublicRoute(req)) {
+      if (publicRoutes.includes(req.nextUrl.pathname)) {
         return NextResponse.redirect(
           new URL(role === "admin" ? "/admin/dashboard" : "/dashboard", req.url)
         );
@@ -52,5 +38,5 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
