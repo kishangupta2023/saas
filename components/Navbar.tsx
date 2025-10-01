@@ -47,6 +47,10 @@ export default function Navbar() {
                       <CreditCard className="mr-2 h-4 w-4" />
                       <span>Subscribe</span>
                     </Link>
+                    <Link href="/admin" className="flex items-center">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Admin</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="mr-2 h-4 w-4" />
