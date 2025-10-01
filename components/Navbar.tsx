@@ -49,7 +49,7 @@ export default function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center">
+                    <Link href="/admin/dashboard" className="flex items-center">
                        <CreditCard className="mr-2 h-4 w-4" />
                         <span>Admin</span>
                         </Link>
